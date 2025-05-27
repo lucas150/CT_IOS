@@ -3,21 +3,82 @@
 //  CT_Native_IOS
 //
 //  Created by Henil Gandhi on 14/05/25.
-//
+
 
 import UIKit
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     var window: UIWindow?
-
-
+    
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
-        // Use this method to optionally configure and attach the UIWindow `window` to the provided UIWindowScene `scene`.
-        // If using a storyboard, the `window` property will automatically be initialized and attached to the scene.
-        // This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
-        guard let _ = (scene as? UIWindowScene) else { return }
+        guard let windowScene = (scene as? UIWindowScene) else { return }
+        window = UIWindow(windowScene: windowScene)
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        let navigationController = storyboard.instantiateViewController(identifier: "MainNavigationController") as? UINavigationController
+        window?.rootViewController = navigationController
+        window?.makeKeyAndVisible()
+        // Handle deep link if app is launched with a URL
+        if let url = connectionOptions.urlContexts.first?.url {
+          handleDeepLink(url)
+        }
+      }
+
+
+    func handleDeepLink(_ url:URL){
+       
+        if url.scheme?.lowercased() == "ctsecond", url.host == "secondpage" {
+            print("[Scene Deligate] Handling deep link for: \(url.absoluteString)")
+            navigateToSecondPage()
+        }
+        
+        
+        if url.scheme?.lowercased() == "ctsecond", url.host == "firstpage" {
+            print("[Scene Deligate] Handling deep link for: \(url.absoluteString)")
+            navigateToFirstPage()
+        }
     }
+    
+
+
+
+
+
+    func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
+        guard let urlContext = URLContexts.first else { return }
+        let url = urlContext.url
+        print("[Sceene Deligate] Received URL: \(url)")
+        
+        handleDeepLink(url)
+    }
+    
+    func navigateToSecondPage() {
+        print("[Navigation] Navigating to Second Page")
+
+        if let rootViewController = window?.rootViewController {
+            // Dismiss any existing modals before presenting a new view
+            rootViewController.dismiss(animated: true) {
+                let storyboard = UIStoryboard(name: "Main", bundle: nil)
+                if let secondVC = storyboard.instantiateViewController(withIdentifier: "SecondViewController") as? SecondViewController {
+                    rootViewController.present(secondVC, animated: true)
+                }
+            }
+        }
+    }
+
+    
+    func navigateToFirstPage() {
+           print("[Scene Deligate] Navigating to First Page")
+           
+           if let rootViewController = window?.rootViewController {
+               rootViewController.dismiss(animated: true) {
+                   let storyboard = UIStoryboard(name: "Main", bundle: nil)
+                   if let secondVC = storyboard.instantiateViewController(withIdentifier: "ViewController") as? ViewController {
+                       rootViewController.present(secondVC, animated: true)
+                   }
+               }
+           }
+       }
 
     func sceneDidDisconnect(_ scene: UIScene) {
         // Called as the scene is being released by the system.
@@ -46,6 +107,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // Use this method to save data, release shared resources, and store enough scene-specific state information
         // to restore the scene back to its current state.
     }
+//    func pushNotificationTapped(withCustomExtras customExtras: [AnyHashable : Any]!) {
+//          print("Push Notification Tapped with Custom Extras: \(customExtras)")
+//        CleverTap.sharedInstance()?.suspendInAppNotifications()
+//    }
 
 
 }
